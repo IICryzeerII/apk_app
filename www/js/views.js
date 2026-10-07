@@ -208,12 +208,12 @@ function renderStats() {
   html += `
     <div style="display:flex; gap:10px; margin-bottom: 25px;">
       <button onclick="state.statMode='buts'; render();" style="flex:1; padding:10px; border-radius:12px; border:none; font-size:14px; font-weight:bold; cursor:pointer; background:${mode==='buts'?'var(--acc)':'var(--card2)'}; color:${mode==='buts'?'#000':'var(--mut)'}">⚽ Buteurs</button>
-      <button onclick="state.statMode='passes'; render();" style="flex:1; padding:10px; border-radius:12px; border:none; font-size:14px; font-weight:bold; cursor:pointer; background:${mode==='passes'?'var(--acc)':'var(--card2)'}; color:${mode==='passes'?'#000':'var(--mut)'}">👟 Passeurs</button>
+      <button onclick="state.statMode='passes_d'; render();" style="flex:1; padding:10px; border-radius:12px; border:none; font-size:14px; font-weight:bold; cursor:pointer; background:${mode==='passes_d'?'var(--acc)':'var(--card2)'}; color:${mode==='passes_d'?'#000':'var(--mut)'}">👟 Passeurs</button>
     </div>
   `;
 
   // --- FILTRAGE ET TRI ---
-  // On ne garde que les joueurs qui ont au moins 1 but ou 1 passe, puis on trie du plus grand au plus petit
+  // On utilise la bonne clé selon le mode ("buts" ou "passes_d")
   let players = st.joueurs
     .filter(j => (j[mode] || 0) > 0)
     .sort((a, b) => b[mode] - a[mode]);
@@ -225,10 +225,10 @@ function renderStats() {
     html += `<div style="display:flex; align-items:flex-end; justify-content:center; gap:8px; margin: 20px 0 30px; height: 160px; padding: 0 10px;">`;
     
     const step = (p, rank) => {
-      if (!p) return `<div style="flex:1"></div>`; // Colonne vide s'il n'y a pas de 2e ou 3e
+      if (!p) return `<div style="flex:1"></div>`;
       const h = rank === 1 ? '110px' : rank === 2 ? '85px' : '65px';
       const bg = rank === 1 ? 'linear-gradient(to top, #BF953F, #FCF6BA)' : rank === 2 ? 'linear-gradient(to top, #8e9eab, #eef2f3)' : 'linear-gradient(to top, #b87333, #e2b382)';
-      const color = rank === 1 ? '#000' : rank === 2 ? '#000' : '#000';
+      const color = '#000';
       
       return `
         <div style="flex:1; display:flex; flex-direction:column; align-items:center; position:relative;">
@@ -239,7 +239,6 @@ function renderStats() {
       `;
     };
 
-    // Ordre d'affichage visuel (2ème à gauche, 1er au milieu, 3ème à droite)
     html += step(players[1], 2);
     html += step(players[0], 1);
     html += step(players[2], 3);
