@@ -32,9 +32,11 @@ function render(){
   document.querySelectorAll("nav button").forEach(b => b.classList.toggle("on", b.dataset.tab === state.tab));
   
   if (state.tab === "infos") renderInfos();
+  else if (state.tab === "stats") renderStats();
   else if (state.tab === "classement") renderClassement();
   else renderMatchs();
 }
+
 document.addEventListener("DOMContentLoaded", () => {
   $("#change").onclick = pickScreen;
   document.querySelectorAll("nav button").forEach(b => b.onclick = () => { state.tab = b.dataset.tab; render(); });

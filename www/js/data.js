@@ -5,7 +5,7 @@ const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;
 const cap = s => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
 
 // État partagé entre les fichiers
-const state = { team: null, tab: "infos", classement: [], matches: [], infos: null };
+const state = { team: null, tab: "infos", classement: [], matches: [], infos: null, stats: null, statMode: "buts" };
 
 // Mémoire du téléphone (équipe choisie)
 const store = {
@@ -51,13 +51,16 @@ async function load(name){
     return await r.json();
   };
 
-  const [c, m, inf] = await Promise.all([
+  // On charge les 4 fichiers en même temps
+  const [c, m, inf, st] = await Promise.all([
     getList(`classement_${suffix}.json`), 
     getList(`matchs_${suffix}.json`),
-    getObj(`infos_club.json`) // <-- Modifie le nom du fichier ici si besoin !
+    getObj(`infos_club.json`),
+    getObj(`stats_joueurs_${suffix}.json`)
   ]);
   
   state.classement = c;
   state.matches = m;
   state.infos = inf;
+  state.stats = st;
 }

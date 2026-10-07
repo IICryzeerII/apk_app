@@ -184,3 +184,86 @@ function renderInfos() {
   $("#main").innerHTML = html;
   $("#main").scrollTop = 0;
 }
+
+function renderStats() {
+  const st = state.stats;
+  if (!st || !st.joueurs) {
+    $("#main").innerHTML = `<div class="mut">Statistiques indisponibles.</div>`;
+    return;
+  }
+
+  let html = `<h2 style="margin: 15px 0 10px 5px; color: #fff; font-size: 18px; text-transform: uppercase;">Podium des joueurs</h2>`;
+
+  // --- ALERTE INCOHÉRENCE ---
+  if (st.controle_integrite && st.controle_integrite.alerte_incoherence) {
+    html += `
+      <div style="background:var(--red); color:#fff; padding:10px 12px; border-radius:8px; margin-bottom:15px; font-size:13px; font-weight:bold; display:flex; align-items:center; gap:10px;">
+        <span style="font-size:20px;">⚠️</span>
+        <span>${esc(st.controle_integrite.message)}</span>
+      </div>`;
+  }
+
+  // --- TOGGLE BUTS / PASSES ---
+  const mode = state.statMode || "buts"; 
+  html += `
+    <div style="display:flex; gap:10px; margin-bottom: 25px;">
+      <button onclick="state.statMode='buts'; render();" style="flex:1; padding:10px; border-radius:12px; border:none; font-size:14px; font-weight:bold; cursor:pointer; background:${mode==='buts'?'var(--acc)':'var(--card2)'}; color:${mode==='buts'?'#000':'var(--mut)'}">⚽ Buteurs</button>
+      <button onclick="state.statMode='passes'; render();" style="flex:1; padding:10px; border-radius:12px; border:none; font-size:14px; font-weight:bold; cursor:pointer; background:${mode==='passes'?'var(--acc)':'var(--card2)'}; color:${mode==='passes'?'#000':'var(--mut)'}">👟 Passeurs</button>
+    </div>
+  `;
+
+  // --- FILTRAGE ET TRI ---
+  // On ne garde que les joueurs qui ont au moins 1 but ou 1 passe, puis on trie du plus grand au plus petit
+  let players = st.joueurs
+    .filter(j => (j[mode] || 0) > 0)
+    .sort((a, b) => b[mode] - a[mode]);
+
+  if (players.length === 0) {
+    html += `<div class="card-info"><div class="mut" style="padding:10px">Aucune statistique enregistrée pour l'instant.</div></div>`;
+  } else {
+    // --- PODIUM (TOP 3) ---
+    html += `<div style="display:flex; align-items:flex-end; justify-content:center; gap:8px; margin: 20px 0 30px; height: 160px; padding: 0 10px;">`;
+    
+    const step = (p, rank) => {
+      if (!p) return `<div style="flex:1"></div>`; // Colonne vide s'il n'y a pas de 2e ou 3e
+      const h = rank === 1 ? '110px' : rank === 2 ? '85px' : '65px';
+      const bg = rank === 1 ? 'linear-gradient(to top, #BF953F, #FCF6BA)' : rank === 2 ? 'linear-gradient(to top, #8e9eab, #eef2f3)' : 'linear-gradient(to top, #b87333, #e2b382)';
+      const color = rank === 1 ? '#000' : rank === 2 ? '#000' : '#000';
+      
+      return `
+        <div style="flex:1; display:flex; flex-direction:column; align-items:center; position:relative;">
+          <div style="font-size:11px; font-weight:bold; text-align:center; margin-bottom:4px; line-height:1.2; word-break:break-word;">${esc(p.nom)}</div>
+          <div style="font-size:20px; font-weight:900; color:var(--acc); margin-bottom:8px;">${p[mode]}</div>
+          <div style="width:100%; height:${h}; background:${bg}; border-radius:8px 8px 0 0; display:flex; justify-content:center; align-items:flex-start; padding-top:10px; color:${color}; font-size:28px; font-weight:900; box-shadow: inset 0 -10px 20px rgba(0,0,0,0.2);">${rank}</div>
+        </div>
+      `;
+    };
+
+    // Ordre d'affichage visuel (2ème à gauche, 1er au milieu, 3ème à droite)
+    html += step(players[1], 2);
+    html += step(players[0], 1);
+    html += step(players[2], 3);
+    
+    html += `</div>`;
+
+    // --- LE RESTE DU CLASSEMENT (4ème et +) ---
+    if (players.length > 3) {
+      html += `<div class="card-info" style="margin-top:10px;">`;
+      for(let i = 3; i < players.length; i++) {
+        html += `
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-top:${i === 3 ? 'none' : '1px solid var(--card2)'};">
+            <div style="display:flex; gap:12px; font-size:14px;">
+              <b style="color:var(--mut); width:20px; text-align:right;">${i + 1}.</b>
+              <span>${esc(players[i].nom)}</span>
+            </div>
+            <div style="font-weight:900; color:var(--acc); font-size:16px;">${players[i][mode]}</div>
+          </div>
+        `;
+      }
+      html += `</div>`;
+    }
+  }
+
+  $("#main").innerHTML = html;
+  $("#main").scrollTop = 0;
+}
