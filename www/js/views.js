@@ -89,34 +89,96 @@ function renderInfos() {
     return;
   }
 
-  let html = `<div class="m" style="cursor:default">
-    <h2 style="text-align:center;margin-bottom:5px;color:var(--acc)">${esc(inf.identite.nom)}</h2>
-    <p style="text-align:center;font-size:13px;color:var(--mut);margin-bottom:15px;">
-      Affiliation : ${esc(inf.identite.numero_affiliation)}<br>
-      ${esc(inf.identite.ligue)} - ${esc(inf.identite.district)}
-    </p>
-    
-    <div class="sec" style="margin-top:0">Contact</div>
-    <div class="pl"><b style="display:inline-block;width:25px">📧</b> <a href="mailto:${esc(inf.contact_club.email)}" style="color:inherit;text-decoration:none">${esc(inf.contact_club.email)}</a></div>
-    <div class="pl"><b style="display:inline-block;width:25px">📞</b> <a href="tel:${esc(inf.contact_club.telephone.replace(/\s/g, ''))}" style="color:inherit;text-decoration:none">${esc(inf.contact_club.telephone)}</a></div>
+  let html = ``;
 
-    <div class="sec">Installation principale</div>
-    <div class="pl"><b style="display:inline-block;width:25px">🏟️</b> ${esc(inf.installation.nom)} <i style="margin-left:25px">${esc(inf.installation.description)}</i></div>
+  // --- SECTION 1 : INFORMATIONS ---
+  html += `<h2 style="margin: 15px 0 10px 5px; color: #fff; font-size: 18px; text-transform: uppercase;">Informations</h2>`;
+  html += `<div class="cols">`; 
 
-    <div class="sec">Bureau</div>
-    <div class="pl"><b style="display:inline-block;width:25px">👤</b> Président : ${esc(inf.staff.bureau.president.nom)} <i style="margin-left:25px">${esc(inf.staff.bureau.president.telephone)}</i></div>
-    <div class="pl"><b style="display:inline-block;width:25px">👤</b> Vice-Président : ${esc(inf.staff.bureau.vice_president)}</div>
+  // Carte Identité
+  html += `
+    <div class="card-info">
+      <div class="sec" style="margin-top:0">Identité</div>
+      <div style="margin-bottom:8px"><b style="display:block;font-size:11px;color:var(--mut)">Nom :</b> ${esc(inf.identite.nom)}</div>
+      <div style="margin-bottom:8px"><b style="display:block;font-size:11px;color:var(--mut)">Numéro d'affiliation :</b> ${esc(inf.identite.numero_affiliation)}</div>
+      <div style="margin-bottom:8px"><b style="display:block;font-size:11px;color:var(--mut)">Ligue :</b> ${esc(inf.identite.ligue)}</div>
+      <div><b style="display:block;font-size:11px;color:var(--mut)">District :</b> ${esc(inf.identite.district)}</div>
+    </div>
   `;
 
-  // Condition : si le nom de l'équipe contient "senior"
+  // Carte Coordonnées
+  html += `
+    <div class="card-info">
+      <div class="sec" style="margin-top:0">Coordonnées</div>
+      <div style="margin-bottom:12px">
+        <b style="display:block;font-size:11px;color:var(--mut)">Email officiel :</b>
+        <a href="mailto:${esc(inf.contact_club.email)}" style="color:inherit;text-decoration:none">📧 ${esc(inf.contact_club.email)}</a>
+      </div>
+      <div>
+        <b style="display:block;font-size:11px;color:var(--mut)">Téléphone autre :</b>
+        <a href="tel:${esc(inf.contact_club.telephone).replace(/\s/g, '')}" style="color:inherit;text-decoration:none">📞 ${esc(inf.contact_club.telephone)}</a>
+      </div>
+    </div>
+  `;
+  html += `</div>`; // Fin de la grille Informations
+
+  // --- SECTION 2 : INSTALLATIONS ---
+  html += `<h2 style="margin: 25px 0 10px 5px; color: #fff; font-size: 18px; text-transform: uppercase;">Les Installations</h2>`;
+  
+  const mapBtn = inf.installation.lien_maps 
+    ? `<a href="${esc(inf.installation.lien_maps)}" target="_blank" style="display:inline-block; margin-top:12px; background:var(--card2); border:1px solid var(--acc); color:var(--acc); padding:8px 12px; border-radius:6px; text-decoration:none; font-size:11px; font-weight:bold; letter-spacing: 0.5px;">🗺️ VOIR SUR LA CARTE</a>` 
+    : '';
+
+  html += `
+    <div class="card-info">
+      <div class="sec" style="margin-top:0; color:var(--acc); text-transform:uppercase;">${esc(inf.installation.nom)}</div>
+      <div style="font-size:13px; color:var(--txt);">${esc(inf.installation.description)}</div>
+      ${mapBtn}
+    </div>
+  `;
+
+  // --- SECTION 3 : STAFF ---
+  html += `<h2 style="margin: 25px 0 10px 5px; color: #fff; font-size: 18px; text-transform: uppercase;">Le Staff</h2>`;
+  html += `<div class="cols">`;
+
+  // Carte Président
+  if (inf.staff.bureau.president) {
+    const p = inf.staff.bureau.president;
+    html += `
+      <div class="card-info">
+        <div class="sec" style="margin-top:0">Président</div>
+        <div style="font-weight:bold; margin-bottom:8px;">👤 ${esc(p.nom)}</div>
+        ${p.email ? `<div style="font-size:12px; margin-bottom:4px;"><a href="mailto:${esc(p.email)}" style="color:var(--mut);text-decoration:none">📧 ${esc(p.email)}</a></div>` : ''}
+        ${p.telephone ? `<div style="font-size:12px;"><a href="tel:${esc(p.telephone).replace(/\s/g, '')}" style="color:var(--mut);text-decoration:none">📞 ${esc(p.telephone)}</a></div>` : ''}
+      </div>
+    `;
+  }
+
+  // Carte Vice-Président
+  if (inf.staff.bureau.vice_president) {
+    html += `
+      <div class="card-info">
+        <div class="sec" style="margin-top:0">Vice-Président</div>
+        <div style="font-weight:bold;">👤 ${esc(inf.staff.bureau.vice_president)}</div>
+      </div>
+    `;
+  }
+
+  // Cartes Seniors (Coachs)
   if (state.team.toLowerCase().includes("senior") && inf.staff.seniors) {
-    html += `<div class="sec">Staff Technique</div>`;
     inf.staff.seniors.forEach(coach => {
-      html += `<div class="pl"><b style="display:inline-block;width:25px">⚽</b> ${esc(coach.role)} : ${esc(coach.nom)} <i style="margin-left:25px">${esc(coach.telephone)}</i></div>`;
+      html += `
+        <div class="card-info">
+          <div class="sec" style="margin-top:0">${esc(coach.role)}</div>
+          <div style="font-weight:bold; margin-bottom:8px;">⚽ ${esc(coach.nom)}</div>
+          ${coach.telephone ? `<div style="font-size:12px;"><a href="tel:${esc(coach.telephone).replace(/\s/g, '')}" style="color:var(--mut);text-decoration:none">📞 ${esc(coach.telephone)}</a></div>` : ''}
+        </div>
+      `;
     });
   }
 
-  html += `</div>`;
+  html += `</div>`; // Fin de la grille Staff
+
   $("#main").innerHTML = html;
   $("#main").scrollTop = 0;
 }
