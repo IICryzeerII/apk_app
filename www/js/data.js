@@ -5,7 +5,7 @@ const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;
 const cap = s => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
 
 // État partagé entre les fichiers
-const state = { team: null, tab: "classement", classement: [], matches: [] };
+const state = { team: null, tab: "infos", classement: [], matches: [], infos: null };
 
 // Mémoire du téléphone (équipe choisie)
 const store = {
@@ -33,15 +33,31 @@ function icon(t){
   return "•";
 }
 
-// Charge classement + matchs d'une équipe
+// Charge infos du club, classement + matchs d'une équipe
 async function load(name){
   const suffix = EQUIPES[name];
-  const get = async f => {
+  
+  // Fonction pour les listes (matchs/classement)
+  const getList = async f => {
     const r = await fetch(BASE + f + "?t=" + Math.floor(Date.now() / 60000));
     if (!r.ok) throw new Error(f + " : " + r.status);
     return (await r.json()).items || [];
   };
-  const [c, m] = await Promise.all([get(`classement_${suffix}.json`), get(`matchs_${suffix}.json`)]);
+  
+  // Fonction pour l'objet unique (infos club)
+  const getObj = async f => {
+    const r = await fetch(BASE + f + "?t=" + Math.floor(Date.now() / 60000));
+    if (!r.ok) return null;
+    return await r.json();
+  };
+
+  const [c, m, inf] = await Promise.all([
+    getList(`classement_${suffix}.json`), 
+    getList(`matchs_${suffix}.json`),
+    getObj(`infos_club.json`) // <-- Modifie le nom du fichier ici si besoin !
+  ]);
+  
   state.classement = c;
   state.matches = m;
+  state.infos = inf;
 }

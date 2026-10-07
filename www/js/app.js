@@ -13,7 +13,7 @@ function pickScreen(){
 
 async function start(name){
   state.team = name;
-  state.tab = "classement";
+  state.tab = "infos"; // <-- On démarre sur l'onglet infos
   $("header").style.display = "flex";
   $("nav").style.display = "flex";
   $("#title").textContent = "Parmain AC · " + name;
@@ -30,9 +30,11 @@ async function start(name){
 // Affiche l'onglet courant
 function render(){
   document.querySelectorAll("nav button").forEach(b => b.classList.toggle("on", b.dataset.tab === state.tab));
-  state.tab === "classement" ? renderClassement() : renderMatchs();
+  
+  if (state.tab === "infos") renderInfos();
+  else if (state.tab === "classement") renderClassement();
+  else renderMatchs();
 }
-
 document.addEventListener("DOMContentLoaded", () => {
   $("#change").onclick = pickScreen;
   document.querySelectorAll("nav button").forEach(b => b.onclick = () => { state.tab = b.dataset.tab; render(); });

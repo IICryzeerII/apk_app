@@ -81,3 +81,42 @@ function renderDetail(i){
   $("#main").scrollTop = 0;
   $("#back").onclick = render;
 }
+
+function renderInfos() {
+  const inf = state.infos;
+  if (!inf) {
+    $("#main").innerHTML = `<div class="mut">Informations du club indisponibles.</div>`;
+    return;
+  }
+
+  let html = `<div class="m" style="cursor:default">
+    <h2 style="text-align:center;margin-bottom:5px;color:var(--acc)">${esc(inf.identite.nom)}</h2>
+    <p style="text-align:center;font-size:13px;color:var(--mut);margin-bottom:15px;">
+      Affiliation : ${esc(inf.identite.numero_affiliation)}<br>
+      ${esc(inf.identite.ligue)} - ${esc(inf.identite.district)}
+    </p>
+    
+    <div class="sec" style="margin-top:0">Contact</div>
+    <div class="pl"><b style="display:inline-block;width:25px">📧</b> <a href="mailto:${esc(inf.contact_club.email)}" style="color:inherit;text-decoration:none">${esc(inf.contact_club.email)}</a></div>
+    <div class="pl"><b style="display:inline-block;width:25px">📞</b> <a href="tel:${esc(inf.contact_club.telephone.replace(/\s/g, ''))}" style="color:inherit;text-decoration:none">${esc(inf.contact_club.telephone)}</a></div>
+
+    <div class="sec">Installation principale</div>
+    <div class="pl"><b style="display:inline-block;width:25px">🏟️</b> ${esc(inf.installation.nom)} <i style="margin-left:25px">${esc(inf.installation.description)}</i></div>
+
+    <div class="sec">Bureau</div>
+    <div class="pl"><b style="display:inline-block;width:25px">👤</b> Président : ${esc(inf.staff.bureau.president.nom)} <i style="margin-left:25px">${esc(inf.staff.bureau.president.telephone)}</i></div>
+    <div class="pl"><b style="display:inline-block;width:25px">👤</b> Vice-Président : ${esc(inf.staff.bureau.vice_president)}</div>
+  `;
+
+  // Condition : si le nom de l'équipe contient "senior"
+  if (state.team.toLowerCase().includes("senior") && inf.staff.seniors) {
+    html += `<div class="sec">Staff Technique</div>`;
+    inf.staff.seniors.forEach(coach => {
+      html += `<div class="pl"><b style="display:inline-block;width:25px">⚽</b> ${esc(coach.role)} : ${esc(coach.nom)} <i style="margin-left:25px">${esc(coach.telephone)}</i></div>`;
+    });
+  }
+
+  html += `</div>`;
+  $("#main").innerHTML = html;
+  $("#main").scrollTop = 0;
+}
