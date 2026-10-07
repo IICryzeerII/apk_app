@@ -25,14 +25,21 @@ function badge(m){
 }
 
 function renderMatchs(){
-  $("#main").innerHTML = state.matches.map((m, i) => `<div class="m" data-i="${i}" ${!played(m) ? "data-next" : ""}>
+  $("#main").innerHTML = state.matches.map((m, i) => {
+    // Création du lien cliquable si l'URL de la carte existe
+    const lieuHtml = m.lieu_lien_carte
+      ? `<a href="${esc(m.lieu_lien_carte)}" target="_blank" onclick="event.stopPropagation()" style="color:inherit; text-decoration:underline;">📍 ${esc(m.lieu || "Lieu à confirmer")}</a>`
+      : `📍 ${esc(m.lieu || "Lieu à confirmer")}`;
+
+    return `<div class="m" data-i="${i}" ${!played(m) ? "data-next" : ""}>
     <div class="mh"><span>${dateTxt(parseDate(m.texte))}</span>${badge(m)}</div>
     ${scoreBlock(m)}
-    <div class="mh" style="margin:10px 0 0;justify-content:center">📍 ${esc(m.lieu || "Lieu à confirmer")}</div></div>`).join("")
-    || `<div class="mut">Aucun match</div>`;
+    <div class="mh" style="margin:10px 0 0;justify-content:center">${lieuHtml}</div></div>`;
+  }).join("") || `<div class="mut">Aucun match</div>`;
+  
   document.querySelectorAll(".m").forEach(el => el.onclick = () => renderDetail(+el.dataset.i));
   const next = $("[data-next]");
-  if (next) next.scrollIntoView({ block: "start" });   // saute au prochain match
+  if (next) next.scrollIntoView({ block: "start" });
 }
 
 function lineup(list){
@@ -46,9 +53,15 @@ function lineup(list){
 
 function renderDetail(i){
   const m = state.matches[i], moments = m.moments_forts || [];
+  
+  // Création du lien cliquable pour la vue détaillée
+  const lieuHtml = m.lieu_lien_carte
+    ? `<a href="${esc(m.lieu_lien_carte)}" target="_blank" style="color:inherit; text-decoration:underline;">📍 ${esc(m.lieu || "Lieu à confirmer")}</a>`
+    : `📍 ${esc(m.lieu || "Lieu à confirmer")}`;
+
   let h = `<button class="back" id="back">← Retour</button>
     <div class="m" style="cursor:default"><div class="mh" style="justify-content:center;flex-direction:column;text-align:center;align-items:center">
-      <span>${dateTxt(parseDate(m.texte))}</span><span>📍 ${esc(m.lieu || "Lieu à confirmer")}</span>${badge(m)}</div>${scoreBlock(m, true)}</div>`;
+      <span>${dateTxt(parseDate(m.texte))}</span><span>${lieuHtml}</span>${badge(m)}</div>${scoreBlock(m, true)}</div>`;
 
   if (!played(m)) {
     h += `<div class="mut">Match à venir.<br>Les compositions seront disponibles après le match.</div>`;
