@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b1d12">
+<title>Parmain AC</title>
+<style>
+:root{--bg:#0b1d12;--card:#14301f;--card2:#1b3f29;--txt:#eef6f0;--mut:#8fb09b;--acc:#f5c518;--red:#e5484d;--grn:#3ecf6e}
+*{box-sizing:border-box;margin:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{background:var(--bg);color:var(--txt);font:15px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;display:flex;flex-direction:column}
+header{padding:calc(env(safe-area-inset-top,0px) + 12px) 16px 12px;display:flex;align-items:center;justify-content:space-between;background:var(--card);border-bottom:2px solid var(--acc)}
+header h1{font-size:18px}
+header button{background:var(--card2);color:var(--txt);border:0;border-radius:10px;padding:8px 12px;font-size:13px}
+main{flex:1;overflow-y:auto;padding:14px 12px 20px}
+nav{display:flex;gap:8px;padding:8px 12px calc(env(safe-area-inset-bottom,0px) + 8px);background:var(--card);border-top:1px solid #000}
+nav button{flex:1;border:0;border-radius:14px;padding:10px 4px;background:var(--card2);color:var(--mut);font-size:13px;font-weight:700}
+nav button span{display:block;font-size:22px}
+nav button.on{background:var(--acc);color:#1a1a1a}
+.pick{display:flex;flex-direction:column;justify-content:center;gap:14px;height:100%;padding:24px}
+.pick h2{text-align:center;font-size:22px;margin-bottom:8px}
+.pick button{background:var(--card);color:var(--txt);border:2px solid var(--card2);border-radius:18px;padding:22px;font-size:18px;font-weight:700}
+.pick button:active{border-color:var(--acc)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{color:var(--mut);font-weight:600;padding:6px 3px;text-align:center}
+td{padding:9px 3px;text-align:center;border-top:1px solid var(--card2)}
+td.nm,th.nm{text-align:left}
+td.nm{font-weight:600;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+tr.me td{background:var(--card2);color:var(--acc)}
+td.pts{font-weight:800}
+.m{background:var(--card);border-radius:16px;padding:12px;margin-bottom:10px;cursor:pointer}
+.m:active{background:var(--card2)}
+.mh{display:flex;justify-content:space-between;color:var(--mut);font-size:12px;margin-bottom:10px;gap:8px}
+.row{display:flex;align-items:center;justify-content:space-between;gap:6px}
+.tm{flex:1;text-align:center;font-size:13px;font-weight:600}
+.tm img,.big img{width:44px;height:44px;object-fit:contain;display:block;margin:0 auto 4px;background:#fff;border-radius:50%}
+.sc{min-width:70px;text-align:center;font-size:22px;font-weight:800}
+.sc small{display:block;font-size:12px;color:var(--mut);font-weight:600}
+.tag{background:var(--red);color:#fff;border-radius:6px;padding:1px 6px;font-size:11px;font-weight:700}
+.tag.ok{background:var(--grn);color:#062}
+.sec{margin:18px 0 8px;color:var(--acc);font-weight:800;font-size:13px;text-transform:uppercase;letter-spacing:.5px}
+.big .tm{font-size:14px}.big img{width:60px;height:60px}.big .sc{font-size:34px}
+.ev{display:flex;align-items:center;gap:8px;padding:7px 0;border-top:1px solid var(--card2);font-size:13px}
+.ev .mn{width:42px;text-align:center;color:var(--acc);font-weight:700}
+.ev .tx{flex:1}.ev.b{flex-direction:row-reverse;text-align:right}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pl{font-size:13px;padding:6px 0;border-top:1px solid var(--card2)}
+.pl b{display:inline-block;width:22px;color:var(--acc)}
+.pl i{display:block;color:var(--mut);font-style:normal;font-size:11px;margin-left:22px}
+.back{background:var(--card2);color:var(--txt);border:0;border-radius:10px;padding:8px 12px;margin-bottom:12px}
+.mut{color:var(--mut);text-align:center;padding:20px}
+</style>
+</head>
+<body>
+<script>
+// === CONFIG : modifie ici ===
+const BASE = "https://raw.githubusercontent.com/IICryzeerII/API_FFF/main/";
+const CLUB = "PARMAIN";               // les lignes contenant ce mot sont mises en avant
+const EQUIPES = {                     // nom affiché -> suffixe des fichiers
+  "Seniors A": "seniors_a",
+  "Seniors B": "seniors_b",
+  "U15 - U14": "U15-U14"
+};
+// ============================
+
+const $ = s => document.querySelector(s);
+let team = null, tab = "classement", data = {}, matches = [];
+
+const store = {
+  get(k){ try{ return localStorage.getItem(k) }catch(e){ return null } },
+  set(k,v){ try{ localStorage.setItem(k,v) }catch(e){} }
+};
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const cap = s => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
+
+function parseDate(texte){
+  const m = /^(\S{3})\s+(\d{1,2})\s+(\S{3,4})\s+(\d{4})\s*-\s*(\d{1,2})[Hh](\d{2})/.exec(texte || "");
+  return m ? { jour: cap(m[1]), j: m[2], mois: cap(m[3]), h: m[5].padStart(2,"0") + "h" + m[6] } : null;
+}
+const dateTxt = d => d ? `${d.jour} ${d.j} ${d.mois} · ${d.h}` : "Date à confirmer";
+
+function icon(t){
+  t = (t || "").toLowerCase();
+  if (t.includes("yellow") || t.includes("jaune")) return "🟨";
+  if (t.includes("red") || t.includes("rouge")) return "🟥";
+  if (t.includes("goal") || t.includes("but")) return "⚽";
+  if (t.includes("chang") || t.includes("subst")) return "🔄";
+  return "•";
+}
+
+async function load(name){
+  const suffix = EQUIPES[name];
+  const get = async f => {
+    const r = await fetch(BASE + f + "?t=" + Math.floor(Date.now()/60000));
+    if (!r.ok) throw new Error(f + " : " + r.status);
+    return (await r.json()).items || [];
+  };
+  const [c, m] = await Promise.all([get(`classement_${suffix}.json`), get(`matchs_${suffix}.json`)]);
+  data = c; matches = m;
+}
+
+function pickScreen(){
+  $("header").style.display = "none"; $("nav").style.display = "none";
+  $("main").innerHTML = `<div class="pick"><h2>⚽ Quelle équipe suivre ?</h2>` +
+    Object.keys(EQUIPES).map(n => `<button data-t="${esc(n)}">${esc(n)}</button>`).join("") + `</div>`;
+  document.querySelectorAll(".pick button").forEach(b => b.onclick = () => { store.set("team", b.dataset.t); start(b.dataset.t); });
+}
+
+async function start(name){
+  team = name; tab = "classement";
+  $("header").style.display = "flex"; $("nav").style.display = "flex";
+  $("title").textContent = "Parmain AC · " + name;
+  $("main").innerHTML = `<div class="mut">Chargement…</div>`;
+  try { await load(name); render(); }
+  catch(e){ $("main").innerHTML = `<div class="mut">Impossible de charger les données.<br><small>${esc(e.message)}</small><br><br><button class="back" onclick="start(team)">Réessayer</button></div>`; }
+}
+
+function render(){
+  document.querySelectorAll("nav button").forEach(b => b.classList.toggle("on", b.dataset.tab === tab));
+  tab === "classement" ? renderClassement() : renderMatchs();
+}
+
+function renderClassement(){
+  $("main").innerHTML = `<table><tr><th>#</th><th class="nm">Équipe</th><th>Pts</th><th>J</th><th>G</th><th>N</th><th>P</th><th>Diff</th></tr>` +
+    data.map(e => `<tr class="${e.equipe.toUpperCase().includes(CLUB) ? "me" : ""}">
+      <td>${esc(e.rang)}</td><td class="nm">${esc(e.equipe)}</td><td class="pts">${esc(e.points)}</td>
+      <td>${e.joues}</td><td>${e.gagnes}</td><td>${e.nuls}</td><td>${e.perdus}</td><td>${e.diff > 0 ? "+" : ""}${e.diff}</td></tr>`).join("") + `</table>`;
+}
+
+const played = m => m.statut && m.statut.toLowerCase() !== "à venir";
+const forfait = m => /forfait/i.test(m.texte || "");
+
+function scoreBlock(m, big){
+  const mid = played(m) && m.score_a !== null
+    ? `${m.score_a} - ${m.score_b}`
+    : (parseDate(m.texte)?.h || "–");
+  return `<div class="row ${big ? "big" : ""}">
+    <div class="tm"><img src="${esc(m.logo_a)}" alt="" onerror="this.style.visibility='hidden'">${esc(m.nom_equipe_a)}</div>
+    <div class="sc">${mid}</div>
+    <div class="tm"><img src="${esc(m.logo_b)}" alt="" onerror="this.style.visibility='hidden'">${esc(m.nom_equipe_b)}</div></div>`;
+}
+
+function badge(m){
+  if (!played(m)) return "";
+  const s = m.statut.toLowerCase();
+  if (forfait(m)) return `<span class="tag">Forfait</span>`;
+  if (s.includes("arr")) return `<span class="tag">Arrêté</span>`;
+  return `<span class="tag ok">Terminé</span>`;
+}
+
+function renderMatchs(){
+  const html = matches.map((m,i) => `<div class="m" data-i="${i}" ${!played(m) ? "data-next" : ""}>
+    <div class="mh"><span>${dateTxt(parseDate(m.texte))}</span>${badge(m)}</div>
+    ${scoreBlock(m)}
+    <div class="mh" style="margin:10px 0 0;justify-content:center">📍 ${esc(m.lieu || "Lieu à confirmer")}</div></div>`).join("");
+  $("main").innerHTML = html || `<div class="mut">Aucun match</div>`;
+  document.querySelectorAll(".m").forEach(el => el.onclick = () => detail(+el.dataset.i));
+  const nx = $("[data-next]"); if (nx) nx.scrollIntoView({block:"start"});
+}
+
+function lineup(list){
+  if (!list || !list.length) return `<div class="mut" style="padding:8px">—</div>`;
+  const row = j => `<div class="pl"><b>${esc(j.maillot)}</b>${esc(j.nom)}${j.evenements && j.evenements.length ? `<i>${j.evenements.map(esc).join(" · ")}</i>` : ""}</div>`;
+  const t = list.filter(j => j.role === "titulaire"), r = list.filter(j => j.role !== "titulaire");
+  return `<div class="sec" style="margin-top:0">Titulaires</div>${t.map(row).join("")}` +
+         (r.length ? `<div class="sec">Remplaçants</div>${r.map(row).join("")}` : "");
+}
+
+function detail(i){
+  const m = matches[i], mf = m.moments_forts || [];
+  let h = `<button class="back" onclick="render()">← Retour</button>
+    <div class="m" style="cursor:default"><div class="mh" style="justify-content:center;flex-direction:column;text-align:center;align-items:center">
+      <span>${dateTxt(parseDate(m.texte))}</span><span>📍 ${esc(m.lieu || "Lieu à confirmer")}</span>${badge(m)}</div>${scoreBlock(m, true)}</div>`;
+  if (!played(m)) {
+    h += `<div class="mut">Match à venir.<br>Les compositions seront disponibles après le match.</div>`;
+  } else {
+    if (mf.length) h += `<div class="sec">Moments forts</div>` + mf.map(e => `<div class="ev ${e.equipe === "exterieur" ? "b" : ""}">
+      <div class="mn">${esc(e.minute)}</div><div style="font-size:18px">${icon(e.type)}</div>
+      <div class="tx">${esc(e.description || e.joueur)}</div></div>`).join("");
+    const none = !(m.joueurs_a || []).length && !(m.joueurs_b || []).length;
+    h += none ? `<div class="mut">Pas de feuille de match disponible.</div>` :
+      `<div class="sec">Compositions</div><div class="cols"><div><b style="font-size:13px">${esc(m.nom_equipe_a)}</b>${lineup(m.joueurs_a)}</div>
+       <div><b style="font-size:13px">${esc(m.nom_equipe_b)}</b>${lineup(m.joueurs_b)}</div></div>`;
+  }
+  $("main").innerHTML = h; $("main").scrollTop = 0;
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  $("#change").onclick = pickScreen;
+  document.querySelectorAll("nav button").forEach(b => b.onclick = () => { tab = b.dataset.tab; render(); });
+  const saved = store.get("team");
+  saved && EQUIPES[saved] ? start(saved) : pickScreen();
+});
+</script>
+<header><h1 id="title">Parmain AC</h1><button id="change">Changer</button></header>
+<main id="main"></main>
+<nav><button data-tab="classement"><span>🏆</span>Classement</button><button data-tab="matchs"><span>📅</span>Matchs</button></nav>
+</body>
+</html>
