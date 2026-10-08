@@ -9,7 +9,7 @@ function renderClassement(){
 
 function scoreBlock(m, big){
   const mid = played(m) && m.score_a !== null
-    ? `${m.score_a} - ${m.score_b}`
+    ? `${m.score_a} -${m.score_b}`
     : (parseDate(m.texte)?.h || "–");
   return `<div class="row ${big ? "big" : ""}">
     <div class="tm"><img src="${esc(m.logo_a)}" alt="" onerror="this.style.visibility='hidden'">${esc(m.nom_equipe_a)}</div>
@@ -26,15 +26,14 @@ function badge(m){
 
 function renderMatchs(){
   $("#main").innerHTML = state.matches.map((m, i) => {
-    // Création du lien cliquable si l'URL de la carte existe
+    // Utilisation du même design de bouton cliquable que dans les Infos
     const lieuHtml = m.lieu_lien_carte
-      ? `<a href="${esc(m.lieu_lien_carte)}" target="_blank" onclick="event.stopPropagation()" style="color:inherit; text-decoration:underline;">📍 ${esc(m.lieu || "Lieu à confirmer")}</a>`
-      : `📍 ${esc(m.lieu || "Lieu à confirmer")}`;
+      ? `<a href="${esc(m.lieu_lien_carte)}" target="_blank" onclick="event.stopPropagation()" style="display:block; margin-top:8px; background:var(--card2); border:1px solid var(--acc); color:var(--acc); padding:6px 10px; border-radius:6px; text-decoration:none; font-size:11px; font-weight:bold; letter-spacing: 0.5px; text-align:center;">🗺️ ${esc(m.lieu || "VOIR SUR LA CARTE")}</a>`
+      : `<div style="font-size:12px; color:var(--mut); margin-top:6px; text-align:center;">📍 ${esc(m.lieu || "Lieu à confirmer")}</div>`;
 
     return `<div class="m" data-i="${i}" ${!played(m) ? "data-next" : ""}>
-    <div class="mh"><span>${dateTxt(parseDate(m.texte))}</span>${badge(m)}</div>
-    ${scoreBlock(m)}
-    <div class="mh" style="margin:10px 0 0;justify-content:center">${lieuHtml}</div></div>`;
+    <div class="mh"><span>${dateTxt(parseDate(m.texte))}</span>${badge(m)}</div>${scoreBlock(m)}
+    <div style="margin-top:8px;">${lieuHtml}</div></div>`;
   }).join("") || `<div class="mut">Aucun match</div>`;
   
   document.querySelectorAll(".m").forEach(el => el.onclick = () => renderDetail(+el.dataset.i));
@@ -54,14 +53,19 @@ function lineup(list){
 function renderDetail(i){
   const m = state.matches[i], moments = m.moments_forts || [];
   
-  // Création du lien cliquable pour la vue détaillée
+  // Design identique pour la vue détaillée
   const lieuHtml = m.lieu_lien_carte
-    ? `<a href="${esc(m.lieu_lien_carte)}" target="_blank" style="color:inherit; text-decoration:underline;">📍 ${esc(m.lieu || "Lieu à confirmer")}</a>`
-    : `📍 ${esc(m.lieu || "Lieu à confirmer")}`;
+    ? `<a href="${esc(m.lieu_lien_carte)}" target="_blank" style="display:block; margin-top:8px; background:var(--card2); border:1px solid var(--acc); color:var(--acc); padding:6px 10px; border-radius:6px; text-decoration:none; font-size:11px; font-weight:bold; letter-spacing: 0.5px; text-align:center;">🗺️ ${esc(m.lieu || "VOIR SUR LA CARTE")}</a>`
+    : `<div style="font-size:12px; color:var(--mut); margin-top:6px; text-align:center;">📍 ${esc(m.lieu || "Lieu à confirmer")}</div>`;
 
   let h = `<button class="back" id="back">← Retour</button>
-    <div class="m" style="cursor:default"><div class="mh" style="justify-content:center;flex-direction:column;text-align:center;align-items:center">
-      <span>${dateTxt(parseDate(m.texte))}</span><span>${lieuHtml}</span>${badge(m)}</div>${scoreBlock(m, true)}</div>`;
+    <div class="m" style="cursor:default">
+      <div class="mh" style="justify-content:space-between; align-items:center;">
+        <span>${dateTxt(parseDate(m.texte))}</span>${badge(m)}
+      </div>
+      ${scoreBlock(m, true)}
+      <div style="margin-top:10px;">${lieuHtml}</div>
+    </div>`;
 
   if (!played(m)) {
     h += `<div class="mut">Match à venir.<br>Les compositions seront disponibles après le match.</div>`;
@@ -125,12 +129,10 @@ function renderInfos() {
   // --- SECTION 2 : INSTALLATIONS (Pleine largeur) ---
   html += `<h2 style="margin: 25px 0 10px 5px; color: #fff; font-size: 18px; text-transform: uppercase;">Les Installations</h2>`;
   
-  // Le bouton Map
   const mapBtn = inf.installation.lien_maps 
     ? `<a href="${esc(inf.installation.lien_maps)}" target="_blank" style="display:block; margin-top:auto; background:var(--card2); border:1px solid var(--acc); color:var(--acc); padding:8px 12px; border-radius:6px; text-decoration:none; font-size:11px; font-weight:bold; letter-spacing: 0.5px; text-align:center;">🗺️ VOIR SUR LA CARTE</a>` 
     : '';
 
-  // Plus de div "cols" ici ! Le bloc va prendre 100% de la largeur disponible.
   html += `
     <div class="card-info">
       <div class="sec" style="margin-top:0; color:var(--acc); text-transform:uppercase;">${esc(inf.installation.nom)}</div>
@@ -210,7 +212,6 @@ function renderStats() {
 
   let html = `<h2 style="margin: 15px 0 10px 5px; color: #fff; font-size: 18px; text-transform: uppercase;">Podium des joueurs</h2>`;
 
-  // --- ALERTE INCOHÉRENCE ---
   if (st.controle_integrite && st.controle_integrite.alerte_incoherence) {
     html += `
       <div style="background:var(--red); color:#fff; padding:10px 12px; border-radius:8px; margin-bottom:15px; font-size:13px; font-weight:bold; display:flex; align-items:center; gap:10px;">
@@ -219,7 +220,6 @@ function renderStats() {
       </div>`;
   }
 
-  // --- TOGGLE BUTS / PASSES ---
   const mode = state.statMode || "buts"; 
   html += `
     <div style="display:flex; gap:10px; margin-bottom: 25px;">
@@ -228,8 +228,6 @@ function renderStats() {
     </div>
   `;
 
-  // --- FILTRAGE ET TRI ---
-  // On utilise la bonne clé selon le mode ("buts" ou "passes_d")
   let players = st.joueurs
     .filter(j => (j[mode] || 0) > 0)
     .sort((a, b) => b[mode] - a[mode]);
@@ -237,7 +235,6 @@ function renderStats() {
   if (players.length === 0) {
     html += `<div class="card-info"><div class="mut" style="padding:10px">Aucune statistique enregistrée pour l'instant.</div></div>`;
   } else {
-    // --- PODIUM (TOP 3) ---
     html += `<div style="display:flex; align-items:flex-end; justify-content:center; gap:8px; margin: 20px 0 30px; height: 160px; padding: 0 10px;">`;
     
     const step = (p, rank) => {
@@ -261,7 +258,6 @@ function renderStats() {
     
     html += `</div>`;
 
-    // --- LE RESTE DU CLASSEMENT (4ème et +) ---
     if (players.length > 3) {
       html += `<div class="card-info" style="margin-top:10px;">`;
       for(let i = 3; i < players.length; i++) {
