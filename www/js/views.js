@@ -181,6 +181,22 @@ function renderInfos() {
 
   html += `</div>`; // Fin de la grille Staff
 
+  html += `
+    <div style="margin: 35px 5px 20px 5px; background: var(--card); border-radius: 12px; padding: 15px; border: 1px solid var(--card2);">
+      <div style="font-size: 13px; font-weight: bold; color: var(--acc); margin-bottom: 8px;">
+        ℹ️ À propos de l'application
+      </div>
+      <div style="font-size: 12px; color: var(--mut); line-height: 1.5;">
+        <p style="margin-bottom: 6px;">
+          Application non officielle développée de manière indépendante par un particulier pour les supporters, joueurs et le staff du <b>Parmain AC</b>.
+        </p>
+        <p style="margin: 0;">
+          Ce projet n'est pas affilié officiellement au club. Des bugs ou des incohérences mineures dans les statistiques automatisées peuvent subvenir.
+        </p>
+      </div>
+    </div>
+  `;
+
   $("#main").innerHTML = html;
   $("#main").scrollTop = 0;
 }
