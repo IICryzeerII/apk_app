@@ -26,7 +26,6 @@ function badge(m){
 
 function renderMatchs(){
   $("#main").innerHTML = state.matches.map((m, i) => {
-    // Utilisation du même design de bouton cliquable que dans les Infos
     const lieuHtml = m.lieu_lien_carte
       ? `<a href="${esc(m.lieu_lien_carte)}" target="_blank" onclick="event.stopPropagation()" style="display:block; margin-top:8px; background:var(--card2); border:1px solid var(--acc); color:var(--acc); padding:6px 10px; border-radius:6px; text-decoration:none; font-size:11px; font-weight:bold; letter-spacing: 0.5px; text-align:center;">🗺️ ${esc(m.lieu || "VOIR SUR LA CARTE")}</a>`
       : `<div style="font-size:12px; color:var(--mut); margin-top:6px; text-align:center;">📍 ${esc(m.lieu || "Lieu à confirmer")}</div>`;
@@ -53,7 +52,6 @@ function lineup(list){
 function renderDetail(i){
   const m = state.matches[i], moments = m.moments_forts || [];
   
-  // Design identique pour la vue détaillée
   const lieuHtml = m.lieu_lien_carte
     ? `<a href="${esc(m.lieu_lien_carte)}" target="_blank" style="display:block; margin-top:8px; background:var(--card2); border:1px solid var(--acc); color:var(--acc); padding:6px 10px; border-radius:6px; text-decoration:none; font-size:11px; font-weight:bold; letter-spacing: 0.5px; text-align:center;">🗺️ ${esc(m.lieu || "VOIR SUR LA CARTE")}</a>`
     : `<div style="font-size:12px; color:var(--mut); margin-top:6px; text-align:center;">📍 ${esc(m.lieu || "Lieu à confirmer")}</div>`;
@@ -95,11 +93,9 @@ function renderInfos() {
 
   let html = ``;
 
-  // --- SECTION 1 : INFORMATIONS ---
   html += `<h2 style="margin: 15px 0 10px 5px; color: #fff; font-size: 18px; text-transform: uppercase;">Informations</h2>`;
   html += `<div class="cols">`; 
 
-  // Carte Identité
   html += `
     <div class="card-info">
       <div class="sec" style="margin-top:0">Identité</div>
@@ -110,7 +106,6 @@ function renderInfos() {
     </div>
   `;
 
-  // Carte Coordonnées
   html += `
     <div class="card-info">
       <div class="sec" style="margin-top:0">Coordonnées</div>
@@ -124,9 +119,8 @@ function renderInfos() {
       </div>
     </div>
   `;
-  html += `</div>`; // Fin de la grille Informations
+  html += `</div>`;
 
-  // --- SECTION 2 : INSTALLATIONS (Pleine largeur) ---
   html += `<h2 style="margin: 25px 0 10px 5px; color: #fff; font-size: 18px; text-transform: uppercase;">Les Installations</h2>`;
   
   const mapBtn = inf.installation.lien_maps 
@@ -141,11 +135,9 @@ function renderInfos() {
     </div>
   `;
 
-  // --- SECTION 3 : STAFF ---
   html += `<h2 style="margin: 25px 0 10px 5px; color: #fff; font-size: 18px; text-transform: uppercase;">Le Staff</h2>`;
   html += `<div class="cols">`;
 
-  // Carte Président
   if (inf.staff.bureau.president) {
     const p = inf.staff.bureau.president;
     html += `
@@ -158,7 +150,6 @@ function renderInfos() {
     `;
   }
 
-  // Carte Vice-Président
   if (inf.staff.bureau.vice_president) {
     html += `
       <div class="card-info">
@@ -168,7 +159,6 @@ function renderInfos() {
     `;
   }
 
-  // Cartes Seniors (Coachs)
   if (state.team.toLowerCase().includes("senior") && inf.staff.seniors) {
     inf.staff.seniors.forEach(coach => {
       html += `
@@ -181,7 +171,7 @@ function renderInfos() {
     });
   }
 
-  html += `</div>`; // Fin de la grille Staff
+  html += `</div>`;
 
   html += `
     <div style="margin: 35px 5px 20px 5px; background: var(--card); border-radius: 12px; padding: 15px; border: 1px solid var(--card2);">
@@ -232,21 +222,25 @@ function renderStats() {
     .filter(j => (j[mode] || 0) > 0)
     .sort((a, b) => b[mode] - a[mode]);
 
+  // Calcul du total global pour les pourcentages
+  const totalGlobal = players.reduce((acc, p) => acc + (p[mode] || 0), 0);
+
   if (players.length === 0) {
     html += `<div class="card-info"><div class="mut" style="padding:10px">Aucune statistique enregistrée pour l'instant.</div></div>`;
   } else {
-    html += `<div style="display:flex; align-items:flex-end; justify-content:center; gap:8px; margin: 20px 0 30px; height: 160px; padding: 0 10px;">`;
+    html += `<div style="display:flex; align-items:flex-end; justify-content:center; gap:8px; margin: 20px 0 30px; height: 175px; padding: 0 10px;">`;
     
     const step = (p, rank) => {
       if (!p) return `<div style="flex:1"></div>`;
       const h = rank === 1 ? '110px' : rank === 2 ? '85px' : '65px';
       const bg = rank === 1 ? 'linear-gradient(to top, #BF953F, #FCF6BA)' : rank === 2 ? 'linear-gradient(to top, #8e9eab, #eef2f3)' : 'linear-gradient(to top, #b87333, #e2b382)';
       const color = '#000';
+      const pct = totalGlobal > 0 ? Math.round((p[mode] / totalGlobal) * 100) : 0;
       
       return `
         <div style="flex:1; display:flex; flex-direction:column; align-items:center; position:relative;">
-          <div style="font-size:11px; font-weight:bold; text-align:center; margin-bottom:4px; line-height:1.2; word-break:break-word;">${esc(p.nom)}</div>
-          <div style="font-size:20px; font-weight:900; color:var(--acc); margin-bottom:8px;">${p[mode]}</div>
+          <div style="font-size:11px; font-weight:bold; text-align:center; margin-bottom:2px; line-height:1.2; word-break:break-word;">${esc(p.nom)}</div>
+          <div style="font-size:11px; color:var(--mut); margin-bottom:4px;">${p[mode]} (${pct}%)</div>
           <div style="width:100%; height:${h}; background:${bg}; border-radius:8px 8px 0 0; display:flex; justify-content:center; align-items:flex-start; padding-top:10px; color:${color}; font-size:28px; font-weight:900; box-shadow: inset 0 -10px 20px rgba(0,0,0,0.2);">${rank}</div>
         </div>
       `;
@@ -261,13 +255,14 @@ function renderStats() {
     if (players.length > 3) {
       html += `<div class="card-info" style="margin-top:10px;">`;
       for(let i = 3; i < players.length; i++) {
+        const pct = totalGlobal > 0 ? Math.round((players[i][mode] / totalGlobal) * 100) : 0;
         html += `
           <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-top:${i === 3 ? 'none' : '1px solid var(--card2)'};">
             <div style="display:flex; gap:12px; font-size:14px;">
               <b style="color:var(--mut); width:20px; text-align:right;">${i + 1}.</b>
               <span>${esc(players[i].nom)}</span>
             </div>
-            <div style="font-weight:900; color:var(--acc); font-size:16px;">${players[i][mode]}</div>
+            <div style="font-weight:900; color:var(--acc); font-size:14px;">${players[i][mode]} <span style="font-size:12px; color:var(--mut); font-weight:normal;">(${pct}%)</span></div>
           </div>
         `;
       }
